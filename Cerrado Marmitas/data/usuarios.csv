@@ -1,5 +1,0 @@
-id;nomeCompleto;usuario;email;senha;caminhoFoto
-1;Administrador;admin;admin@cerradomarmitas.com;admin123;src/br/com/images/JesusMonster.jpeg
-2;Musk Preto;musk;blackmusk@gmail.com;spacex;src/br/com/images/elon.jpeg
-3;Teste de estresse;teste;teste@teste.com;teste;src/br/com/images/teste.jpg
-4;relampago marquinhos;katchau;RM@gmail.com;12345;
