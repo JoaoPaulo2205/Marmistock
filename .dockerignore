@@ -1,0 +1,15 @@
+.git/
+.github/
+.idea/
+target/
+**/out/
+*.iml
+
+Cerrado Marmitas/
+Banco_de_Dados.pdf
+db_data
+02_popular_marmitas_2500.sql
+scripts/
+
+.env
+application-local.properties
