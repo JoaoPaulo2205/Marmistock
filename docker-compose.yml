@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: marmistock-postgres
+    environment:
+      POSTGRES_DB: trabalho_banco_dados
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - marmistock_pgdata:/var/lib/postgresql/data
+
+volumes:
+  marmistock_pgdata:

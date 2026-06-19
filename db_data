@@ -1,0 +1,132 @@
+CREATE DATABASE trabalho_banco_dados
+
+-- 1. Criação da Tabela Categoria
+-- Atributos básicos com identificador único
+CREATE TABLE categoria (
+    id_categoria SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT
+);
+
+-- 2. Criação da Tabela Receita
+-- Relacionamento 1:N com categoria
+CREATE TABLE receita (
+    id_receita SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    descricao TEXT,
+    modo_preparo TEXT,
+    id_categoria INT NOT NULL,
+    CONSTRAINT fk_receita_categoria FOREIGN KEY (id_categoria) 
+        REFERENCES categoria(id_categoria) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 3. Criação da Tabela Ingrediente
+-- Atributos básicos
+CREATE TABLE ingrediente (
+    id_ingrediente SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    unidade_medida VARCHAR(20) NOT NULL
+);
+
+-- 4. Criação da Tabela Receita_Ingrediente
+-- Tabela associativa com chave composta, garantindo a FNBC ao eliminar a chave artificial
+CREATE TABLE receita_ingrediente (
+    id_receita INT NOT NULL,
+    id_ingrediente INT NOT NULL,
+    quantidade DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (id_receita, id_ingrediente),
+    CONSTRAINT fk_ri_receita FOREIGN KEY (id_receita) 
+        REFERENCES receita(id_receita) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_ri_ingrediente FOREIGN KEY (id_ingrediente) 
+        REFERENCES ingrediente(id_ingrediente) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 5. Criação da Tabela Lote
+-- Produção que faz referência à receita utilizada
+CREATE TABLE lote (
+    id_lote SERIAL PRIMARY KEY,
+    data_preparo DATE NOT NULL,
+    data_validade DATE NOT NULL,
+    id_receita INT NOT NULL,
+    CONSTRAINT fk_lote_receita FOREIGN KEY (id_receita) 
+        REFERENCES receita(id_receita) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 6. Criação da Tabela Local de Armazenamento
+-- Divisões físicas do congelador
+CREATE TABLE local_armazenamento (
+    id_local SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT
+);
+
+-- 7. Criação da Tabela Marmita Física
+-- Controle de status através de restrição de conjunto restrito de valores textuais
+CREATE TABLE marmita_fisica (
+    id_marmita SERIAL PRIMARY KEY,
+    status VARCHAR(30) NOT NULL CHECK (status IN ('DISPONIVEL', 'CONSUMIDA', 'DESCARTADA')),
+    id_lote INT NOT NULL,
+    id_local INT NOT NULL,
+    CONSTRAINT fk_marmita_lote FOREIGN KEY (id_lote) 
+        REFERENCES lote(id_lote) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_marmita_local FOREIGN KEY (id_local) 
+        REFERENCES local_armazenamento(id_local) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 8. Criação da Tabela Consumidor
+-- Cadastro básico
+CREATE TABLE consumidor (
+    id_consumidor SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL
+);
+
+-- 9. Criação da Tabela Registro_Movimentacao (Entidade-Pai)
+-- Centraliza os atributos comuns da herança supertype/subtype
+CREATE TABLE registro_movimentacao (
+    id_movimentacao SERIAL PRIMARY KEY,
+    data_movimentacao DATE NOT NULL,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('consumo', 'descarte')),
+    id_marmita INT NOT NULL,
+    CONSTRAINT fk_movimentacao_marmita FOREIGN KEY (id_marmita) 
+        REFERENCES marmita_fisica(id_marmita) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 10. Criação da Tabela Registro_Consumo (Subtipo)
+-- id_movimentacao atua como PK e FK simultaneamente para referenciar o registro-pai
+CREATE TABLE registro_consumo (
+    id_movimentacao INT PRIMARY KEY,
+    id_consumidor INT NOT NULL,
+    CONSTRAINT fk_consumo_movimentacao FOREIGN KEY (id_movimentacao) 
+        REFERENCES registro_movimentacao(id_movimentacao) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_consumo_consumidor FOREIGN KEY (id_consumidor) 
+        REFERENCES consumidor(id_consumidor) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE
+);
+
+-- 11. Criação da Tabela Registro_Descarte (Subtipo)
+-- Subtipo para registrar o motivo da perda
+CREATE TABLE registro_descarte (
+    id_movimentacao INT PRIMARY KEY,
+    motivo VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_descarte_movimentacao FOREIGN KEY (id_movimentacao) 
+        REFERENCES registro_movimentacao(id_movimentacao) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE
+);
